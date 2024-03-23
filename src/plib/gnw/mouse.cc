@@ -39,6 +39,8 @@ static unsigned char or_mask[MOUSE_DEFAULT_CURSOR_SIZE] = {
     // clang-format on
 };
 
+static int mouse_scale = 1;
+
 // 0x539DC0
 static int mouse_idling = 0;
 
@@ -476,12 +478,16 @@ void mouse_info()
         return;
     }
 
+    int absx;
+    int absy;
     int x;
     int y;
     int buttons = 0;
 
     MouseData mouseData;
     if (dxinput_get_mouse_state(&mouseData)) {
+        absx = mouseData.absx / mouse_scale;
+        absy = mouseData.absy / mouse_scale;
         x = mouseData.x;
         y = mouseData.y;
 
@@ -493,13 +499,26 @@ void mouse_info()
             buttons |= MOUSE_STATE_RIGHT_BUTTON_DOWN;
         }
     } else {
+        absx = -1;
+        absy = -1;
         x = 0;
         y = 0;
     }
 
-    // Adjust for mouse senstivity.
-    x = (int)(x * mouse_sensitivity);
-    y = (int)(y * mouse_sensitivity);
+    if (absx < 0 || absy < 0)
+    {
+        // Relative mouse mode
+        // Adjust for mouse senstivity.
+        x = (int)(x * mouse_sensitivity);
+        x = (int)(y * mouse_sensitivity);
+    }
+    else
+    {
+        // Absolute mouse mode
+        // Set dx to match absolute position
+        x = absx - raw_x;
+        y = absy - raw_y;
+    }
 
     if (vcr_state == VCR_STATE_PLAYING) {
         if (((vcr_terminate_flags & VCR_TERMINATE_ON_MOUSE_PRESS) != 0 && buttons != 0)
@@ -510,6 +529,8 @@ void mouse_info()
         }
         x = 0;
         y = 0;
+        absx = -1;
+        absy = -1;
         buttons = last_buttons;
     }
 
@@ -753,6 +774,8 @@ void mouse_get_raw_state(int* x, int* y, int* buttons)
 {
     MouseData mouseData;
     if (!dxinput_get_mouse_state(&mouseData)) {
+        mouseData.absx = -1;
+        mouseData.absy = -1;
         mouseData.x = 0;
         mouseData.y = 0;
         mouseData.buttons[0] = (mouse_buttons & MOUSE_EVENT_LEFT_BUTTON_DOWN) != 0;
@@ -760,8 +783,22 @@ void mouse_get_raw_state(int* x, int* y, int* buttons)
     }
 
     raw_buttons = 0;
-    raw_x += mouseData.x;
-    raw_y += mouseData.y;
+    if(mouseData.absx >= 0)
+    {
+        raw_x = mouseData.absx / mouse_scale;
+    }
+    else
+    {
+        raw_x += mouseData.x;
+    }
+    if(mouseData.absy >= 0)
+    {
+        raw_y = mouseData.absy / mouse_scale;
+    }
+    else
+    {
+        raw_y += mouseData.y;
+    }
 
     if (mouseData.buttons[0] != 0) {
         raw_buttons |= MOUSE_EVENT_LEFT_BUTTON_DOWN;
@@ -826,6 +863,11 @@ void mouse_reset_elapsed_time()
     if (mouse_idling) {
         mouse_idling = false;
     }
+}
+
+void mouse_set_scale(int scale)
+{
+    mouse_scale = scale;
 }
 
 void mouseGetPositionInWindow(int win, int* x, int* y)

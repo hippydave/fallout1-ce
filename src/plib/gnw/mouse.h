@@ -59,6 +59,7 @@ void mouse_set_sensitivity(double value);
 double mouse_get_sensitivity();
 unsigned int mouse_elapsed_time();
 void mouse_reset_elapsed_time();
+void mouse_set_scale(int scale);
 
 void mouseGetPositionInWindow(int win, int* x, int* y);
 bool mouseHitTestInWindow(int win, int left, int top, int right, int bottom);

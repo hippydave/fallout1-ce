@@ -68,6 +68,15 @@ bool dxinput_get_mouse_state(MouseData* mouseState)
     mouseState->buttons[1] = (buttons & SDL_BUTTON(SDL_BUTTON_RIGHT)) != 0;
     mouseState->wheelX = gMouseWheelDeltaX;
     mouseState->wheelY = gMouseWheelDeltaY;
+    if (/* Not absolute mouse mode */!true)
+    {
+        mouseState->absx = -1;
+        mouseState->absy = -1;
+    }
+    else
+    {
+        SDL_GetMouseState(&(mouseState->absx), &(mouseState->absy));
+    }
 
     gMouseWheelDeltaX = 0;
     gMouseWheelDeltaY = 0;
@@ -103,7 +112,14 @@ bool dxinput_read_keyboard_buffer(KeyboardData* keyboardData)
 // 0x4E070C
 bool dxinput_mouse_init()
 {
-    return SDL_SetRelativeMouseMode(SDL_TRUE) == 0;
+    if (/* Not absolute mouse mode*/!true)
+    {
+        return SDL_SetRelativeMouseMode(SDL_TRUE) == 0;
+    }
+    else
+    {
+        return SDL_ShowCursor(SDL_DISABLE) >= 0;
+    }
 }
 
 // 0x4E078C

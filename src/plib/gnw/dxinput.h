@@ -6,6 +6,8 @@
 namespace fallout {
 
 typedef struct MouseData {
+    int absx;
+    int absy;
     int x;
     int y;
     unsigned char buttons[2];
