@@ -123,13 +123,13 @@ static char mouse_trans;
 static int gMouseWheelX = 0;
 static int gMouseWheelY = 0;
 
+static bool disable_real_mouse = true;
+
 // 0x4B4780
 int GNW_mouse_init()
 {
     have_mouse = false;
     mouse_disabled = false;
-
-    mouse_is_hidden = true;
 
     mouse_colorize();
 
@@ -416,6 +416,7 @@ void mouse_hide()
 // 0x4B4DD8
 void mouse_info()
 {
+    //was_touch = false;
     if (!have_mouse) {
         return;
     }
@@ -481,7 +482,8 @@ void mouse_info()
     int buttons = 0;
 
     MouseData mouseData;
-    if (dxinput_get_mouse_state(&mouseData)) {
+    if (!disable_real_mouse) {
+        dxinput_get_mouse_state(&mouseData);
         x = mouseData.x;
         y = mouseData.y;
 
@@ -495,6 +497,7 @@ void mouse_info()
     } else {
         x = 0;
         y = 0;
+        dxinput_clear_mouse_deltas(&mouseData);
     }
 
     // Adjust for mouse senstivity.

@@ -75,6 +75,15 @@ bool dxinput_get_mouse_state(MouseData* mouseState)
     return true;
 }
 
+void dxinput_clear_mouse_deltas(MouseData* mouseState)
+{
+    mouseState->wheelX = gMouseWheelDeltaX;
+    mouseState->wheelY = gMouseWheelDeltaY;
+
+    gMouseWheelDeltaX = 0;
+    gMouseWheelDeltaY = 0;
+}
+
 // 0x4E05A8
 bool dxinput_acquire_keyboard()
 {
